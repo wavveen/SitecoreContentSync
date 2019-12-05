@@ -53,7 +53,6 @@ function RunKuduCommand
 		
 		try {
 			$Output = Invoke-RestMethod -Uri "https://$Hostname/api/command" -Headers @{Authorization=("Basic {0}" -f $Base64AuthInfo)} -Method POST -Body $Body -ContentType "application/json" -TimeoutSec 1200
-			Write-Output $Output
 		}
 		catch{ 
 			$Exception = $True
@@ -68,24 +67,28 @@ function RunKuduCommand
 		if($Output.ExitCode -gt 0 -or $Exception){			
 			if(!([string]::IsNullOrEmpty($exceptionMessage))){
 				Write-Output "Exception: $($exceptionMessage)"}
+			if(!([string]::IsNullOrEmpty($Output))){
+				Write-Output "Output: $($Output)"}
 			if(!([string]::IsNullOrEmpty($Output.Output))){
-				Write-Output "Output: $($Output.Output)"}
+				Write-Output "Output.Output: $($Output.Output)"}
 			if(!([string]::IsNullOrEmpty($Output.Error))){
 				Write-Output "Error: $($Output.Error)"}
 			if(!([string]::IsNullOrEmpty($Output.ExitCode))){
 				Write-Output "ExitCode: $($Output.ExitCode)"}
 			if(!([string]::IsNullOrEmpty($responseBody))){
 				Write-Output "Exception: $($responseBody)"}
-			if([string]::IsNullOrEmpty($exceptionMessage) -And [string]::IsNullOrEmpty($Output.Output) -And [string]::IsNullOrEmpty($Output.Error) -And [string]::IsNullOrEmpty($Output.ExitCode) -And [string]::IsNullOrEmpty($responseBody)){
+			if([string]::IsNullOrEmpty($exceptionMessage) -And [string]::IsNullOrEmpty($Output) -And [string]::IsNullOrEmpty($Output.Output) -And [string]::IsNullOrEmpty($Output.Error) -And [string]::IsNullOrEmpty($Output.ExitCode) -And [string]::IsNullOrEmpty($responseBody)){
 				Write-Output "Exception: No excpetion details"}				
 			}
 		else
 		{
 			if(!$SuppressOutput)
 			{
+				if(!([string]::IsNullOrEmpty($Output))){
+					Write-Output "Output: $($Output)"}
 				if(!([string]::IsNullOrEmpty($Output.Output))){
-					Write-Output "Output: $($Output.Output)"}
-				else{ 
+					Write-Output "Output.Output: $($Output.Output)"}
+				if([string]::IsNullOrEmpty($Output) -And [string]::IsNullOrEmpty($Output.Output)){ 
 					Write-Output "Output: [none]" 
 				}
 			}
