@@ -111,7 +111,7 @@ function RunKuduCommand
 	if($Failed)
 	{
 		if(!$SuppressError){
-			exit 1
+			throw "Something went wrong"
 		}
 		Write-Output "Suppressing errors..."
 	}

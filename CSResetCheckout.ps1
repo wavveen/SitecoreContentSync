@@ -41,8 +41,7 @@ if(![string]::IsNullOrEmpty($AzureResourceGroupName) -And ![string]::IsNullOrEmp
 }
 
 if([string]::IsNullOrEmpty($KuduUsername) -Or [string]::IsNullOrEmpty($KuduPassword) -Or [string]::IsNullOrEmpty($KuduHostname)){
-	Write-Output "Error: Both Kudu connection details and Azure environment details are not provided. Need atleast one of them..."
-	exit 1
+	throw "Error: Both Kudu connection details and Azure environment details are not provided. Need atleast one of them..."
 }
 
 #CSKuduScriptFile containing functions to perform Kudu commands on a webapp
