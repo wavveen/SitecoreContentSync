@@ -16,7 +16,7 @@ Param(
 	[parameter(Mandatory=$False)]
 	[String]$AzureWebAppName,
 	[parameter(Mandatory=$False)]
-	[String]$AzureWebAppSlot
+	[String]$AzureWebAppSlot,
 
 	#Kudu connection details, not needed if parameters above are provided
 	[parameter(Mandatory=$False)]
@@ -24,7 +24,7 @@ Param(
 	[parameter(Mandatory=$False)]
 	[String]$KuduPassword,
 	[parameter(Mandatory=$False)]
-	[String]$KuduHostname,
+	[String]$KuduHostname
 )
 
 Import-Module -Name "$PSScriptRoot\ZCSAzureScriptModule.psm1"
