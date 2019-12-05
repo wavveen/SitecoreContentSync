@@ -35,6 +35,8 @@ if(![string]::IsNullOrEmpty($AzureResourceGroupName) -And ![string]::IsNullOrEmp
 		$KuduConnectionDetails = GetKuduConnectionDetailsFromAzurePublishProfile -AzureResourceGroupName $AzureResourceGroupName -AzureWebAppName $AzureWebAppName -AzureWebAppSlot $AzureWebAppSlot
 	}
 	
+	Write-Output "Retrieved PublishProfile: $($KuduConnectionDetails.ProfileName)"
+	
 	$KuduUsername = $KuduConnectionDetails.Username
 	$KuduPassword = $KuduConnectionDetails.Password
 	$KuduHostname = $KuduConnectionDetails.Hostname
