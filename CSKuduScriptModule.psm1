@@ -64,7 +64,7 @@ function RunKuduCommand
 		}	
 		
 		#Print output about exception
-		if($Output.ExitCode -gt 0 -or $Exception){			
+		if($Output.ExitCode -gt 0 -or $Exception -$Output.Error){			
 			if(!([string]::IsNullOrEmpty($exceptionMessage))){
 				Write-Output "Exception: $($exceptionMessage)"}
 			if(!([string]::IsNullOrEmpty($Output))){
