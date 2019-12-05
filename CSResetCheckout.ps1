@@ -7,26 +7,27 @@ Param(
 	[parameter(Mandatory=$True)]
 	$ContentBranch,
 	
-	#Need Kudu connection details
-	[parameter(Mandatory=$False)]
-	[String]$KuduUsername,
-	[parameter(Mandatory=$False)]
-	[String]$KuduPassword,
-	[parameter(Mandatory=$False)]
-	[String]$KuduHostname,
-	
-	#Or Azure environment details
+	#Provide the AzureResourceGroupName, AzureWebAppName and (optionally) AzureWebAppSlot if this script is running in
+	# 1) Azure Powershell step template context in Octopus, or
+	# 2) Azure Powershell script step context in Azure Devops
+	#Other wise the Kudu connection details need to be provided
 	[parameter(Mandatory=$False)]
 	[String]$AzureResourceGroupName,
 	[parameter(Mandatory=$False)]
 	[String]$AzureWebAppName,
 	[parameter(Mandatory=$False)]
 	[String]$AzureWebAppSlot
+
+	#Kudu connection details, not needed if parameters above are provided
+	[parameter(Mandatory=$False)]
+	[String]$KuduUsername,
+	[parameter(Mandatory=$False)]
+	[String]$KuduPassword,
+	[parameter(Mandatory=$False)]
+	[String]$KuduHostname,
 )
 
-#CSAzureOctopusScriptModule containing functions to get azure details (Only working when this script is running in a Azure Powershell step template context in Octopus)
-#Comment out next line if not running in octopus
-Import-Module -Name "$PSScriptRoot\CSAzureOctopusScriptModule.psm1"
+Import-Module -Name "$PSScriptRoot\ZCSAzureScriptModule.psm1"
 
 if(![string]::IsNullOrEmpty($AzureResourceGroupName) -And ![string]::IsNullOrEmpty($AzureResourceGroupName)){
 	if([string]::IsNullOrEmpty($AzureWebAppSlot)){
@@ -46,8 +47,8 @@ if([string]::IsNullOrEmpty($KuduUsername) -Or [string]::IsNullOrEmpty($KuduPassw
 	throw "Error: Both Kudu connection details and Azure environment details are not provided. Need atleast one of them..."
 }
 
-#CSKuduScriptFile containing functions to perform Kudu commands on a webapp
-Import-Module -Name "$PSScriptRoot\CSKuduScriptModule.psm1" -Force
+#ZCSKuduScriptFile containing functions to perform Kudu commands on a webapp
+Import-Module -Name "$PSScriptRoot\ZCSKuduScriptModule.psm1" -Force
 
 RunKuduCommand -Command "git fetch origin" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -RetryAmount 10 -RetryTimespan 120
 RunKuduCommand -Command "git clean -df" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -RetryAmount 10 -RetryTimespan 120
