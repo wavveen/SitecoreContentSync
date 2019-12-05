@@ -8,6 +8,8 @@ function GetKuduConnectionDetailsFromAzurePublishProfile
 		[parameter(Mandatory=$False)]
 		[String]$AzureWebAppSlot
 	)
+	
+	Get-Module azure* -ListAvailable
 
 	#Get-AzureRmContext is available when this script is running in a Azure Powershell step template context
 	$SubscriptionId = (Get-AzureRmContext).Subscription.SubscriptionId
