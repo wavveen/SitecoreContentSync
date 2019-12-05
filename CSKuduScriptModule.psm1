@@ -48,10 +48,12 @@ function RunKuduCommand
 	$Retry = -1	
 	do {
 		$Exception = $False
-		Write-Output "Command: $Command; Directory: $Directory"
+		Write-Output "Executing Command with Kudu: $Command"
+		Write-Output "Command execution directory: $Directory"
 		
 		try {
 			$Output = Invoke-RestMethod -Uri "https://$Hostname/api/command" -Headers @{Authorization=("Basic {0}" -f $Base64AuthInfo)} -Method POST -Body $Body -ContentType "application/json" -TimeoutSec 1200
+			Invoke-RestMethod -Uri "https://$Hostname/api/command" -Headers @{Authorization=("Basic {0}" -f $Base64AuthInfo)} -Method POST -Body $Body -ContentType "application/json" -TimeoutSec 1200
 		}
 		catch{ 
 			$Exception = $True
