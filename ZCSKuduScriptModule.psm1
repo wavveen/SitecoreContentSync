@@ -53,6 +53,7 @@ function RunKuduCommand
 		
 		try {
 			$Output = Invoke-RestMethod -Uri "https://$Hostname/api/command" -Headers @{Authorization=("Basic {0}" -f $Base64AuthInfo)} -Method POST -Body $Body -ContentType "application/json" -TimeoutSec 1200
+			Write-Host $Output
 		}
 		catch{ 
 			$Exception = $True
@@ -84,11 +85,9 @@ function RunKuduCommand
 		{
 			if(!$SuppressOutput)
 			{
-				if(!([string]::IsNullOrEmpty($Output))){
-					Write-Output "Output: $($Output)"}
 				if(!([string]::IsNullOrEmpty($Output.Output))){
-					Write-Output "Output.Output: $($Output.Output)"}
-				if([string]::IsNullOrEmpty($Output) -And [string]::IsNullOrEmpty($Output.Output)){ 
+					Write-Output "Output: $($Output.Output)"}
+				else{ 
 					Write-Output "Output: [none]" 
 				}
 			}
