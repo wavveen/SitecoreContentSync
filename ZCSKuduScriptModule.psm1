@@ -65,7 +65,7 @@ function RunKuduCommand
 		}	
 		
 		#Print output about exception
-		if($Output.ExitCode -gt 0 -or $Exception -$Output.Error){			
+		if($Output.ExitCode -gt 0 -or $Exception -or ($Output.Error -And !$Output.Error.StartsWith("Already"))){			
 			if(!([string]::IsNullOrEmpty($exceptionMessage))){
 				Write-Output "Exception: $($exceptionMessage)"}
 			if(!([string]::IsNullOrEmpty($Output))){
@@ -87,6 +87,8 @@ function RunKuduCommand
 			{
 				if(!([string]::IsNullOrEmpty($Output.Output))){
 					Write-Output "Output: $($Output.Output)"}
+				if(!([string]::IsNullOrEmpty($Output.Error))){
+					Write-Output "Output: $($Output.Error)"}
 				else{ 
 					Write-Output "Output: [none]" 
 				}
