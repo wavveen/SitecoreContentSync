@@ -64,9 +64,9 @@ function RunKuduCommand
 		}	
 		
 		#Print output about exception
-		if($Output.ExitCode -gt 0 -or $Exception `
-			-or ($Output.Error -And !$Output.Error.StartsWith("Already") -And !$Command.StartsWith("git checkout")) <#Somehow the info about if a checkout is up to date already gets returned as an Error, don't handle as error#> `
-			-or ($Output.Error -And !$Output.Error.StartsWith("From") -And !$Command.StartsWith("git fetch"))){		<#Somehow the fetch info gets returned as an Error, don't handle as error#> `
+		#Somehow the fetch info gets returned as an Error, don't handle as error
+		#Somehow the info about if a checkout is up to date already gets returned as an Error, don't handle as error
+		if($Output.ExitCode -gt 0 -or $Exception -or ($Output.Error -And !$Output.Error.StartsWith("Already") -And !$Command.StartsWith("git checkout")) -or ($Output.Error -And !$Output.Error.StartsWith("From") -And !$Command.StartsWith("git fetch"))){		
 			if(!([string]::IsNullOrEmpty($exceptionMessage))){
 				Write-Output "!Exception: $($exceptionMessage)"}
 			if(!([string]::IsNullOrEmpty($Output)) -And [string]::IsNullOrEmpty($Output.Output) -And [string]::IsNullOrEmpty($Output.Error)){
