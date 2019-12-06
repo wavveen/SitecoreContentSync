@@ -22,4 +22,4 @@ $Configurations = Invoke-RestMethod -Uri $UrlConfigurations
 
 $UrlUnicorn = $SitecoreCMInstanceUrl + "/unicorn.aspx"
 
-Unicorn -ControlPanelUrl $UrlUnicorn -Configurations $Configurations -Verb Reserialize -SharedSecret $SharedSecret -NoDebug $False
+Unicorn -ControlPanelUrl $UrlUnicorn -Configurations $Configurations -Verb Reserialize -SharedSecret $SharedSecret -NoDebug:$False
