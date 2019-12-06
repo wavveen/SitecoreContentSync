@@ -64,7 +64,7 @@ function RunKuduCommand
 		}	
 		
 		#Print output about exception
-		if($Output.ExitCode -gt 0 -or $Exception -or ($Output.Error -And !$Output.Error.StartsWith("Already") -And !$Command.StartsWith("git checkout"))){			
+		if($Output.ExitCode -gt 0 -or $Exception -or $Output.Error) {# -And !$Output.Error.StartsWith("Already") -And !$Command.StartsWith("git checkout"))){			
 			if(!([string]::IsNullOrEmpty($exceptionMessage))){
 				Write-Output "!Exception: $($exceptionMessage)"}
 			if(!([string]::IsNullOrEmpty($Output)) -And [string]::IsNullOrEmpty($Output.Output) -And [string]::IsNullOrEmpty($Output.Error)){
@@ -79,7 +79,7 @@ function RunKuduCommand
 				Write-Output "!Exception: $($responseBody)"}
 			if([string]::IsNullOrEmpty($exceptionMessage) -And [string]::IsNullOrEmpty($Output) -And [string]::IsNullOrEmpty($Output.Output) -And [string]::IsNullOrEmpty($Output.Error) -And [string]::IsNullOrEmpty($Output.ExitCode) -And [string]::IsNullOrEmpty($responseBody)){
 				Write-Output "!Exception: No excpetion details"}				
-			}
+		}
 		else
 		{
 			if(!$SuppressOutput)
