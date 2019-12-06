@@ -88,9 +88,8 @@ function RunKuduCommand
 					Write-Output "Output: $($Output.Output)"}
 				if(!([string]::IsNullOrEmpty($Output.Error))){
 					Write-Output "Output: $($Output.Error)"}
-				else{ 
-					Write-Output "Output: [none]" 
-				}
+				if([string]::IsNullOrEmpty($Output.Output) -And [string]::IsNullOrEmpty($Output.Error)){ 
+					Write-Output "Output: [none]"}
 			}
 			
 			$Failed = $False
@@ -103,7 +102,6 @@ function RunKuduCommand
 		} 
 		elseif($Retry -lt $RetryAmount){
 			$NewRetryIn = ($RetryTimespan * ($($Retry)+1))
-			Write-Output "NewRetryIn: $NewRetryIn"
 			Write-Output "Failed! Retry in $NewRetryIn sec, retry $Retry of $RetryAmount"
 			Start-Sleep -s $NewRetryIn
 		}
