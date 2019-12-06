@@ -104,7 +104,8 @@ function RunKuduCommand
 		} 
 		elseif($Retry -lt $RetryAmount){
 			$NewRetryIn = ($RetryTimespan * ($($Retry)+1))
-			Write-Output "Failed! Retry in $NewRetryIn sec, retry ($($Retry) + 1) of $RetryAmount"
+			$UpcomingRetry = $Retry + 1
+			Write-Output "Failed! Retry in $NewRetryIn sec, retry $UpcomingRetry of $RetryAmount"
 			Start-Sleep -s $NewRetryIn
 		}
 		else{
