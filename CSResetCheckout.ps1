@@ -34,4 +34,4 @@ $KuduUsername = $KuduConnectionDetails.Username
 $KuduPassword = $KuduConnectionDetails.Password
 $KuduHostname = $KuduConnectionDetails.Hostname
 
-& "$PSScriptRoot\CSResetCheckoutWhitoutAzurePSModules.ps1"
+& "$PSScriptRoot\CSResetCheckoutWithoutAzurePSModules.ps1"
