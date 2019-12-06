@@ -64,7 +64,9 @@ function RunKuduCommand
 		}	
 		
 		#Print output about exception
-		if($Output.ExitCode -gt 0 -or $Exception -or $Output.Error) {# -And !$Output.Error.StartsWith("Already") -And !$Command.StartsWith("git checkout"))){			
+		if($Output.ExitCode -gt 0 -or $Exception 
+			#-or ($Output.Error -And !$Output.Error.StartsWith("Already") -And !$Command.StartsWith("git checkout")) #Somehow the info about if a checkout is up to date already gets returned as an Error, don't handle as error
+			-or ($Output.Error -And !$Output.Error.StartsWith("From") -And !$Command.StartsWith("git fetch"))){		#Somehow the fetch info gets returned as an Error, don't handle as error
 			if(!([string]::IsNullOrEmpty($exceptionMessage))){
 				Write-Output "!Exception: $($exceptionMessage)"}
 			if(!([string]::IsNullOrEmpty($Output)) -And [string]::IsNullOrEmpty($Output.Output) -And [string]::IsNullOrEmpty($Output.Error)){
@@ -102,7 +104,7 @@ function RunKuduCommand
 		} 
 		elseif($Retry -lt $RetryAmount){
 			$NewRetryIn = ($RetryTimespan * ($($Retry)+1))
-			Write-Output "Failed! Retry in $NewRetryIn sec, retry $Retry of $RetryAmount"
+			Write-Output "Failed! Retry in $NewRetryIn sec, retry ($($Retry) + 1) of $RetryAmount"
 			Start-Sleep -s $NewRetryIn
 		}
 		else{
