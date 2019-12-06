@@ -118,6 +118,7 @@ function RunKuduCommand
 	{
 		if(!$SuppressError){
 			throw "Something went wrong"
+			exit 1
 		}
 		Write-Output "Suppressing errors..."
 	}
