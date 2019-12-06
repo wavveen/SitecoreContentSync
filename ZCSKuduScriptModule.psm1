@@ -53,7 +53,6 @@ function RunKuduCommand
 		
 		try {
 			$Output = Invoke-RestMethod -Uri "https://$Hostname/api/command" -Headers @{Authorization=("Basic {0}" -f $Base64AuthInfo)} -Method POST -Body $Body -ContentType "application/json" -TimeoutSec 1200
-			Write-Host $Output
 		}
 		catch{ 
 			$Exception = $True
@@ -65,7 +64,7 @@ function RunKuduCommand
 		}	
 		
 		#Print output about exception
-		if($Output.ExitCode -gt 0 -or $Exception -or ($Output.Error -And !$Output.Error.StartsWith("Already"))){			
+		if($Output.ExitCode -gt 0 -or $Exception -or ($Output.Error -And !$Output.Error.StartsWith("Already") -And $Command.StartsWith("git checkout"))){			
 			if(!([string]::IsNullOrEmpty($exceptionMessage))){
 				Write-Output "Exception: $($exceptionMessage)"}
 			if(!([string]::IsNullOrEmpty($Output))){
