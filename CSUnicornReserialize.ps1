@@ -5,11 +5,11 @@ Param(
 	
 	#URL which returns a JSON array containing the configurations that need to be reserialized
 	[parameter(Mandatory=$True)]
-	$UrlReserializeConfigurations
+	$UrlReserializeConfigurations,
 	
 	#Shared secret for running Unicorn
 	[Parameter(Mandatory=$True)]
-	[string]$SharedSecret,
+	[string]$SharedSecret
 )
 
 #ZCSKuduScriptModule containing functions to perform unicorn actions on a webapp
