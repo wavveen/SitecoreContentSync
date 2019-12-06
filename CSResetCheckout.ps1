@@ -34,4 +34,4 @@ $KuduUsername = $KuduConnectionDetails.Username
 $KuduPassword = $KuduConnectionDetails.Password
 $KuduHostname = $KuduConnectionDetails.Hostname
 
-& "$PSScriptRoot\CSResetCheckoutWithoutAzurePSModules.ps1 -GitDirectory $GitDirectory -ContentBranch $ContentBranch -KuduUsername $KuduUsername -KuduPassword $KuduPassword -KuduHostname $KuduHostname"
+& "$PSScriptRoot\CSResetCheckoutWithoutAzurePSModules.ps1" -GitDirectory $GitDirectory -ContentBranch $ContentBranch -KuduUsername $KuduUsername -KuduPassword $KuduPassword -KuduHostname $KuduHostname
