@@ -13,7 +13,7 @@ Param(
 )
 
 #ZCSKuduScriptModule containing functions to perform unicorn actions on a webapp
-Import-Module "$PSScriptRoot\ZCSUnicornScriptFile.psm1"
+Import-Module "$PSScriptRoot\ZCSUnicornScriptModule.psm1"
 
 $UrlConfigurations = $UrlReserializeConfigurations
 Write-Host "Unicorn: Requesting $UrlConfigurations to get the unicorn configurations that need to be reserialized"
