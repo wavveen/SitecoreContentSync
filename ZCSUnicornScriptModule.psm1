@@ -24,20 +24,20 @@ Function Unicorn {
 	$MicroCHAP = $PSScriptRoot + '\MicroCHAP.dll'
 	Add-Type -Path $MicroCHAP
 	
-	Write-Host "Unicorn: Preparing authorization"
-
-	#Get an Auth challenge
-	$challenge = Get-Challenge -ControlPanelUrl $ControlPanelUrl
-
-	Write-Host "Unicorn: Received challenge from remote server: $challenge"
-
-	$signatureService = New-Object MicroCHAP.SignatureService -ArgumentList $SharedSecret
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 	#Run action for passed configurations
 	ForEach ($Configuration in $Configurations ) {		
 		$url = "{0}?verb={1}&configuration={2}" -f $ControlPanelUrl, $Verb, $Configuration
 	
+		Write-Host "Unicorn: Preparing authorization for $url"
+
+		#Get an Auth challenge
+		$challenge = Get-Challenge -ControlPanelUrl $ControlPanelUrl
+
+		Write-Host "Unicorn: Received challenge from remote server: $challenge"
+		$signatureService = New-Object MicroCHAP.SignatureService -ArgumentList $SharedSecret
+		
 		#Create a signature with the shared secret and challenge
 		$signature = $signatureService.CreateSignature($challenge, $url, $null)
 
@@ -71,41 +71,4 @@ Function Get-Challenge {
 	$result = Invoke-WebRequest -Uri $url -TimeoutSec 360 -UseBasicParsing
 
 	$result.Content
-}
-
-Function Invoke-StreamingWebRequest($Uri, $MAC, $Nonce) {
-	$responseText = new-object -TypeName "System.Text.StringBuilder"
-
-	$request = [System.Net.WebRequest]::Create($Uri)
-	$request.Headers["X-MC-MAC"] = $MAC
-	$request.Headers["X-MC-Nonce"] = $Nonce
-	$request.Timeout = 10800000
-
-	$response = $request.GetResponse()
-	$responseStream = $response.GetResponseStream()
-	$responseStreamReader = new-object System.IO.StreamReader $responseStream
-	
-	while(-not $responseStreamReader.EndOfStream) {
-		$line = $responseStreamReader.ReadLine()
-
-		if($line.StartsWith('Error:')) {
-			Write-Host $line.Substring(7) -ForegroundColor Red
-		}
-		elseif($line.StartsWith('Warning:')) {
-			Write-Host $line.Substring(9) -ForegroundColor Yellow
-		}
-		elseif($line.StartsWith('Debug:')) {
-			Write-Host $line.Substring(7) -ForegroundColor Gray
-		}
-		elseif($line.StartsWith('Info:')) {
-			Write-Host $line.Substring(6) -ForegroundColor White
-		}
-		else {
-			Write-Host $line -ForegroundColor White
-		}
-
-		[void]$responseText.AppendLine($line)
-	}
-
-	return $responseText.ToString()
 }
