@@ -7,31 +7,48 @@ Param(
 	[parameter(Mandatory=$True)]
 	$ContentBranch,
 	
-	#Other wise the Kudu connection details need to be provided
-	[parameter(Mandatory=$True)]
-	[String]$AzureResourceGroupName,
-	[parameter(Mandatory=$True)]
+	#Azure web app details
+	[parameter(Mandatory=$True, ParameterSetName = 'AzureWebAppDetails')]
+	[String]$AzureWebAppResourceGroupName,
+	[parameter(Mandatory=$True, ParameterSetName = 'AzureWebAppDetails')]
 	[String]$AzureWebAppName,
-	[parameter(Mandatory=$False)]
-	[String]$AzureWebAppSlot
+	[parameter(Mandatory=$False, ParameterSetName = 'AzureWebAppDetails')]
+	[String]$AzureWebAppSlot,
+	
+	#Kudu connection details
+	[parameter(Mandatory=$True, ParameterSetName = 'KuduDetails')]
+	[String]$KuduUsername,
+	[parameter(Mandatory=$True, ParameterSetName = 'KuduDetails')]
+	[String]$KuduPassword,
+	[parameter(Mandatory=$True, ParameterSetName = 'KuduDetails')]
+	[String]$KuduHostname
 )
 
-#ZCSAzureScriptModule containing functions to perform actions within an Azuze context 
-#This means that the Azure Powershell Modules should be imported/loaded, which is the case when running powershell scripts as
-# 1) Azure Powershell step template context in Octopus, or
-# 2) Azure Powershell script step context in Azure Devops
-Import-Module -Name "$PSScriptRoot\ZCSAzureScriptModule.psm1"
+if($PSCmdlet.ParameterSetName -eq 'AzureWebAppDetails')
+{
+	#ZCSAzureScriptModule containing functions to perform actions within an Azuze context 
+	#This means that the Azure Powershell Modules should be imported/loaded, which is the case when running powershell scripts as
+	# 1) Azure Powershell step template context in Octopus, or
+	# 2) Azure Powershell script step context in Azure Devops
+	Import-Module -Name "$PSScriptRoot\ZCSAzureScriptModule.psm1"
 
-if([string]::IsNullOrEmpty($AzureWebAppSlot)){
-	$KuduConnectionDetails = GetKuduConnectionDetailsFromAzurePublishProfile -AzureResourceGroupName $AzureResourceGroupName -AzureWebAppName $AzureWebAppName
-}else{
-	$KuduConnectionDetails = GetKuduConnectionDetailsFromAzurePublishProfile -AzureResourceGroupName $AzureResourceGroupName -AzureWebAppName $AzureWebAppName -AzureWebAppSlot $AzureWebAppSlot
+	if([string]::IsNullOrEmpty($AzureWebAppSlot)){
+		$KuduConnectionDetails = GetKuduConnectionDetailsFromAzurePublishProfile -AzureResourceGroupName $AzureResourceGroupName -AzureWebAppName $AzureWebAppName
+	}else{
+		$KuduConnectionDetails = GetKuduConnectionDetailsFromAzurePublishProfile -AzureResourceGroupName $AzureResourceGroupName -AzureWebAppName $AzureWebAppName -AzureWebAppSlot $AzureWebAppSlot
+	}
+		
+	Write-Output "Retrieved PublishProfile: $($KuduConnectionDetails.ProfileName)"
+
+	$KuduUsername = $KuduConnectionDetails.Username
+	$KuduPassword = $KuduConnectionDetails.Password
+	$KuduHostname = $KuduConnectionDetails.Hostname
 }
-	
-Write-Output "Retrieved PublishProfile: $($KuduConnectionDetails.ProfileName)"
 
-$KuduUsername = $KuduConnectionDetails.Username
-$KuduPassword = $KuduConnectionDetails.Password
-$KuduHostname = $KuduConnectionDetails.Hostname
+#ZCSKuduScriptModule containing functions to perform Kudu commands on a webapp
+Import-Module -Name "$PSScriptRoot\ZCSKuduScriptModule.psm1" -Force
 
-& "$PSScriptRoot\CSResetCheckoutWithoutAzurePSModules.ps1" -GitDirectory $GitDirectory -ContentBranch $ContentBranch -KuduUsername $KuduUsername -KuduPassword $KuduPassword -KuduHostname $KuduHostname
+RunKuduCommand -Command "git fetch origin" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -RetryAmount 10 -RetryTimespan 60
+RunKuduCommand -Command "git clean -df" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -RetryAmount 10 -RetryTimespan 60
+RunKuduCommand -Command "git reset --hard origin/$ContentBranch" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -RetryAmount 10 -RetryTimespan 60
+RunKuduCommand -Command "git checkout $ContentBranch" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -RetryAmount 10 -RetryTimespan 60
