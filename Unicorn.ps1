@@ -26,8 +26,8 @@ if($PSCmdlet.ParameterSetName -eq 'ConfigurationsByUrl')
 	$Configurations = Invoke-RestMethod -Uri $UrlConfigurations
 }
 
-#ZCSKuduScriptModule containing functions to perform unicorn actions on a webapp
-Import-Module "$PSScriptRoot\ZCSUnicornScriptModule.psm1"
+#KuduScriptModule containing functions to perform unicorn actions on a webapp
+Import-Module "$PSScriptRoot\modules\UnicornScriptModule.psm1"
 
 $UrlUnicorn = $SitecoreCMInstanceUrl + "/unicorn.aspx"
 

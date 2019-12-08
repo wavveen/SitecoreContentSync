@@ -38,9 +38,9 @@ Param(
 
 #Resolving GIT platform
 if($GitPlatform -eq "BitBucket"){
-	Import-Module -Name ".\ZCSBitBucketScriptModule.psm1" -Force
+	Import-Module -Name "$PSScriptRoot\modules\BitBucketScriptModule.psm1" -Force
 } elseif($GitPlatform -eq "AzureDevOps") {
-	Import-Module -Name ".\ZCSAzureDevOpsScriptModule.psm1" -Force
+	Import-Module -Name "$PSScriptRoot\modules\AzureDevOpsScriptModule.psm1" -Force
 } else {
 	Write-Host "GitPlatform not recognized"
 	throw "Something went wrong"

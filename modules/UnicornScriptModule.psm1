@@ -21,7 +21,7 @@ Function Unicorn {
 		[switch]$NoDebug = $True
 	)
 	
-	$MicroCHAP = $PSScriptRoot + '\MicroCHAP.dll'
+	$MicroCHAP = $PSScriptRoot + '\resources\MicroCHAP.dll'
 	Add-Type -Path $MicroCHAP
 	
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12

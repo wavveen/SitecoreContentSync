@@ -26,11 +26,11 @@ Param(
 
 if($PSCmdlet.ParameterSetName -eq 'AzureWebAppDetails')
 {
-	#ZCSAzureScriptModule containing functions to perform actions within an Azuze context 
+	#AzureScriptModule containing functions to perform actions within an Azuze context 
 	#This means that the Azure Powershell Modules should be imported/loaded, which is the case when running powershell scripts as
 	# 1) Azure Powershell step template context in Octopus, or
 	# 2) Azure Powershell script step context in Azure Devops
-	Import-Module -Name "$PSScriptRoot\ZCSAzureScriptModule.psm1"
+	Import-Module -Name "$PSScriptRoot\modules\AzureScriptModule.psm1"
 
 	if([string]::IsNullOrEmpty($AzureWebAppSlot)){
 		$KuduConnectionDetails = GetKuduConnectionDetailsFromAzurePublishProfile -AzureResourceGroupName $AzureResourceGroupName -AzureWebAppName $AzureWebAppName
@@ -45,8 +45,8 @@ if($PSCmdlet.ParameterSetName -eq 'AzureWebAppDetails')
 	$KuduHostname = $KuduConnectionDetails.Hostname
 }
 
-#ZCSKuduScriptModule containing functions to perform Kudu commands on a webapp
-Import-Module -Name "$PSScriptRoot\ZCSKuduScriptModule.psm1"
+#KuduScriptModule containing functions to perform Kudu commands on a webapp
+Import-Module -Name "$PSScriptRoot\modules\KuduScriptModule.psm1"
 $Output = ""
 
 RunKuduCommand -Command "git fetch origin" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
