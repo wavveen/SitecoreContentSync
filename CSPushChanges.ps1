@@ -7,6 +7,10 @@ Param(
 	[parameter(Mandatory=$True)]
 	$ContentBranch,
 	
+	#Release number of the release thats getting deployed
+	[parameter(Mandatory=$True)]
+	$ReleaseNumber,
+	
 	#Azure web app details
 	[parameter(Mandatory=$True, ParameterSetName = 'AzureWebAppDetails')]
 	[String]$AzureWebAppResourceGroupName,
@@ -21,7 +25,15 @@ Param(
 	[parameter(Mandatory=$True, ParameterSetName = 'KuduDetails')]
 	[String]$KuduPassword,
 	[parameter(Mandatory=$True, ParameterSetName = 'KuduDetails')]
-	[String]$KuduHostname
+	[String]$KuduHostname,
+	
+	#Emailaddress for commit
+	[parameter(Mandatory=$False)]
+	[String]$Emailaddress = "content@sync.com",
+	
+	#Username for commit
+	[parameter(Mandatory=$False)]
+	[String]$Username = "contentsync"
 )
 
 if($PSCmdlet.ParameterSetName -eq 'AzureWebAppDetails')
@@ -46,10 +58,20 @@ if($PSCmdlet.ParameterSetName -eq 'AzureWebAppDetails')
 }
 
 #ZCSKuduScriptModule containing functions to perform Kudu commands on a webapp
-Import-Module -Name "$PSScriptRoot\ZCSKuduScriptModule.psm1"
+Import-Module -Name "$PSScriptRoot\ZCSKuduScriptModule.psm1" -Force
 $Output = ""
 
-RunKuduCommand -Command "git fetch origin" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
-RunKuduCommand -Command "git clean -df" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
-RunKuduCommand -Command "git reset --hard origin/$ContentBranch" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
-RunKuduCommand -Command "git checkout $ContentBranch" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+#Stage all changes
+RunKuduCommand -Command "git add -A" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+RunKuduCommand -Command "git config --global user.email `"$Emailaddress`"" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+RunKuduCommand -Command "git config --global user.name `"$Username`"" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+
+#Check if there are changes
+RunKuduCommand -Command "git diff --name-only --cached" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+if([string]::IsNullOrEmpty($Output.Output)){
+	Write-Host "There are no changes, so no need to commit and push"
+}else{
+	Write-Host "There are changes, going to commit and push"
+	RunKuduCommand -Command "git commit -a -m `"$ReleaseNumber pre deploy commit $ContentBranch`" --allow-empty" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+	RunKuduCommand -Command "git push" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+}
