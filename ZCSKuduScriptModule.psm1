@@ -63,7 +63,6 @@ function RunKuduCommand
 			$result = $_.Exception.Response.GetResponseStream()
 			$reader = New-Object System.IO.StreamReader($result)
 			$responseBody = $reader.ReadToEnd();
-			$responseMessage = $reader.ReadToEnd();
 			$exceptionMessage = $_.Exception.Message;
 		}	
 		
