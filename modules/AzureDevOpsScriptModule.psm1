@@ -219,9 +219,11 @@ function SetReleaseVariable{
 	$releaseId = $env:RELEASE_RELEASEID
 
 	$getReleaseUri = $baseRMUri + "/_apis/release/releases/" + $releaseId + "?api-version=5.0"
-	Write-Host = $getReleaseUri
+	Write-Host $getReleaseUri
 
 	$release = Invoke-RestMethod -Uri $getReleaseUri -Headers $Headers -Method Get
+	
+	Write-Host $release
 
 	# Update an existing variable named d1 to its new value d5
 	Write-Host ("Setting variable value...")
