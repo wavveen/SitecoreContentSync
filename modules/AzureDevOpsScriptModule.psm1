@@ -222,21 +222,21 @@ function SetReleaseVariable{
 	}
 	
 	$EndPoint = "$BaseUrl/$Project/_apis/release/releases/$($env:RELEASE_RELEASEID)?api-version=5.1"
+	
+	#Getting release details
+	Write-Host "Getting release details"
+	$Response = Invoke-RestMethod -Uri $EndPoint -Headers $Headers -Method Get	
 
-	Write-Host $EndPoint
-	$release = Invoke-RestMethod -Uri $EndPoint -Headers $Headers -Method Get	
-	Write-Host $release
-
-	# Update an existing variable named d1 to its new value d5
-	Write-Host ("Setting variable value...")
-	$release.variables.($VariableName).value = $VariableValue;
-	Write-Host ("Completed setting variable value.")
-
-	####****************** update the modified object **************************
-	$release2 = $release | ConvertTo-Json -Depth 100
-	$release2 = [Text.Encoding]::UTF8.GetBytes($release2)
-
-	Write-Host ("Updating release...")
-	$content2 = Invoke-RestMethod -Uri $EndPoint -Method Put -Headers $Headers -ContentType "application/json" -Body $release2 -Verbose -Debug
-	write-host "=========================================================="
+	#Updating variable in release details
+	Write-Host "Updating variable '$VariableName' in release details to '$VariableValue'"
+	$Response.variables.($VariableName).value = $VariableValue;
+	$JsonResponse = ($Response | ConvertTo-Json -Depth 100
+	$JsonResponse = [Text.Encoding]::UTF8.GetBytes($JsonResponse)
+	
+	#Putting the release details
+	Write-Host "Putting the release details"
+	$JsonResponse = Invoke-RestMethod -Uri $EndPoint -Method Put -Headers $Headers -ContentType "application/json" -Body $JsonResponse -Verbose -Debug
+	Start-Sleep -Seconds 1
+	
+	Write-Host "Release details/variabele have been updated"
 }
