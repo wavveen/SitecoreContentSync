@@ -116,7 +116,7 @@ Write-Host "Check if pull request ($($Response.id)) is auto merge-able"
 $CanMergePR = CanMergePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -PullRequestId $($Response.id)
 if(!$CanMergePR){
 	if($GitPlatform -eq "AzureDevOps") {
-		SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -VariableName "IsAutoMergeable" -VariableValue "no"
+		SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl.replace("https://","https://vsrm.") -Project $GitProjectName -VariableName "IsAutoMergeable" -VariableValue "no"
 	}
 	Write-Host "Pull request ($($Response.id)) is NOT auto merge-able, manual action required"
 	Write-Host ""
