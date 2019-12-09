@@ -119,10 +119,11 @@ if(!$CanMergePR){
 	Write-Host ""
 	Write-Host "################################################################"
 	Write-Host "#"
-	Write-Host "# Something went wrong while auto merging the PR"
+	Write-Host "# The PR is not auto merge-able"
 	Write-Host "#"
-	Write-Host "# 1 Check if the PR is still present in the online interface of the GIT platform"
-	Write-Host "# 2 Delete/Abandon the PR"
+	Write-Host "# 1 Check if the '$TargetBranch into $SourceBranch' PR is"
+	Write-Host "#   still present in the online interface of the GIT platform"
+	Write-Host "# 2 If so... Delete/Abandon the PR"
 	Write-Host "# 3 On your local, check out the $TargetBranch branch and pull the latest"
 	Write-Host "# 4 On your local, check out the $SourceBranch branch and pull the latest"
 	Write-Host "# 5 Merge $TargetBranch into $SourceBranch"
@@ -141,7 +142,39 @@ if(!$CanMergePR){
 	throw "Trigger exception to stop script execution"
 	exit 1
 }
-SetReleaseVariable -VariableName "IsAutoMergeable" -VariableValue "yes"
+Write-Host "Pull request ($($Response.id)) is auto merge-able!"
 
-
-
+#Merge pull request
+Write-Host "Going to merge the pull request to merge $SourceBranch into $TargetBranch"
+$Merged = MergePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -PullRequestId $($Response.id) -PullRequestVersion $($Response.version)
+if($Merged){
+	Write-Host "The merge has completed succesfully"
+} else {
+	Write-Host "################################################################"
+	Write-Host "#"
+	Write-Host "# Something went wrong while auto merging the PR"
+	Write-Host "#"
+	Write-Host "# 1 Check if the '$TargetBranch into $SourceBranch' PR is still present in the"
+	Write-Host "#   online interface of the GIT platform. If so... Continue with step 2, else continue with step 3"
+	Write-Host "# 2 Aprove the PR"
+	Write-Host "#"
+	Write-Host "# The deploy can be continued, NO need to perform the next steps"
+	Write-Host "#"
+	Write-Host "# 3 On your local, check out the $TargetBranch branch and pull the latest"
+	Write-Host "# 4 On your local, check out the $SourceBranch branch and pull the latest"
+	Write-Host "# 5 Merge $TargetBranch into $SourceBranch"
+	Write-Host "# 6 Resolve the merge conflicts"
+    Write-Host "# 7 Commit and push the merge"
+	Write-Host "#"		
+    Write-Host "# After that is all done, the deploy can continue"
+	Write-Host "#"	
+	Write-Host "################################################################"
+	#If we are on the Azure DevOps platform we are not going to throw an error as this platform doesn't support a "Guided Failure Mode" like Octopus deploy
+	#Instead of that set the "IsAutoMergeable" release variable to "no" and add a "Manual Intervention" task which acts upon this release variable
+	if($GitPlatform -eq "AzureDevOps") { 
+		SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl.replace("https://","https://vsrm.") -Project $GitProjectName -VariableName "IsAutoMergeable" -VariableValue "no"
+		exit 0
+	}
+	throw "Trigger exception to stop script execution"
+	exit 1
+}

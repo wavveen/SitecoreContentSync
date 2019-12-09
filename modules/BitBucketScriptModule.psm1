@@ -139,3 +139,37 @@ function CanMergePullRequest{
 	$Response = Invoke-RestMethod -Uri $EndPoint -Method GET -Headers $Headers
 	return $Response.canMerge
 }
+
+function MergePullRequest{
+	Param (
+		[parameter(Mandatory=$True)]
+		[String]$Token,
+		[parameter(Mandatory=$True)]
+		[String]$BaseUrl,
+		[parameter(Mandatory=$True)]
+		[String]$Project,
+		[parameter(Mandatory=$True)]
+		[String]$Repository,
+		[parameter(Mandatory=$True)]
+		[String]$PullRequestId,
+		[parameter(Mandatory=$True)]
+		[String]$PullRequestVersion
+	)
+		
+	$Bearer = "Bearer $Token"
+	
+	$Headers = @{
+		Authorization = $Bearer
+	}
+	
+	$EndPoint = "$BaseUrl/projects/$Project/repos/$Repository/pull-requests/$PullRequestId/merge?version=$($PullRequestVersion)"
+	
+	$Response = Invoke-RestMethod -Uri $EndPoint -Method POST -Headers $Headers -ContentType "application/json"
+	
+	if($Response.state -eq "MERGED"){
+		return $True
+	} else {
+		Write-Host $Response
+		return $False		
+	}
+}

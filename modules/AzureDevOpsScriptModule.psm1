@@ -207,10 +207,8 @@ function SetReleaseVariable{
 		[parameter(Mandatory=$True)]
 		[String]$Project,
 		[Parameter(Mandatory=$true)]
-		[ValidateNotNullOrEmpty()]
 		[string] $VariableName,
 		[Parameter(Mandatory=$true)]
-		[ValidateNotNullOrEmpty()]
 		[string] $VariableValue
 	)
 
@@ -238,5 +236,29 @@ function SetReleaseVariable{
 	$JsonResponse = Invoke-RestMethod -Uri $EndPoint -Method Put -Headers $Headers -ContentType "application/json" -Body $JsonResponse
 	Start-Sleep -Seconds 1
 	
-	Write-Host "Release details/variabele have been updated"
+	Write-Host "Release details/variable have been updated"
+}
+
+function MergePullRequest{
+	Param (
+		[parameter(Mandatory=$True)]
+		[String]$Token,
+		[parameter(Mandatory=$True)]
+		[String]$BaseUrl,
+		[parameter(Mandatory=$True)]
+		[String]$Project,
+		[parameter(Mandatory=$True)]
+		[String]$Repository,
+		[parameter(Mandatory=$True)]
+		[String]$PullRequestId
+	)
+		
+	$Base64Token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$Token)))	
+	$Bearer = "Basic $Base64Token"
+	
+	$Headers = @{
+		Authorization = $Bearer
+	}
+	
+	$EndPoint = 
 }
