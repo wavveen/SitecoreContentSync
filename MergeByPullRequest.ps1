@@ -91,6 +91,7 @@ if($TargetBranch){
 #already, and there is no way to delete or abandon a PR via the rest api after it's created.
 #The BitBucket platform prevents from creating a PR for branches which are up-to-date already.
 if($GitPlatform -eq "AzureDevOps") {
+	Write-Host ("##vso[task.setvariable variable=IsAutoMergeable;]unknown")
 	$AlreadyUpToDate = AlreadyUpToDate -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Source $SourceBranch.replace("refs/heads/","") -Target $TargetBranch.replace("refs/heads/","")
 	if($AlreadyUpToDate){
 		Write-Host "Branch '$TargetBranch' is already up-to-date with branch '$SourceBranch' in repository '$GitRepositoryName'. No need for a pull request"
@@ -114,6 +115,9 @@ Write-Host "PullRequestTitle: $($Response.title)"
 Write-Host "Check if pull request ($($Response.id)) is auto merge-able"
 $CanMergePR = CanMergePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -PullRequestId $($Response.id)
 if(!$CanMergePR){
+	if($GitPlatform -eq "AzureDevOps") {
+		SetReleaseVariable -VariableName "IsAutoMergeable" -VariableValue "no"
+	}
 	Write-Host "Pull request ($($Response.id)) is NOT auto merge-able, manual action required"
 	Write-Host ""
 	Write-Host "################################################################"
@@ -134,6 +138,7 @@ if(!$CanMergePR){
 	throw "Trigger exception to stop script execution"
 	exit 1
 }
+SetReleaseVariable -VariableName "IsAutoMergeable" -VariableValue "yes"
 
 
 
