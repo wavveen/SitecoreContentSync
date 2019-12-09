@@ -204,6 +204,8 @@ function SetReleaseVariable{
 		[String]$Token,
 		[parameter(Mandatory=$True)]
 		[String]$BaseUrl,
+		[parameter(Mandatory=$True)]
+		[String]$Project,
 		[Parameter(Mandatory=$true)]
 		[ValidateNotNullOrEmpty()]
 		[string] $VariableName,
