@@ -99,11 +99,6 @@ function CreatePullRequest
 	
 	try {
 		$Response = Invoke-RestMethod -Uri $EndPoint -Method POST -Headers $Headers -Body $Body -ContentType "application/json"
-		$Commits = GetPullRequestCommits -Token $Token -BaseUrl $BaseUrl -Project $Project -Repository $Repository -PullRequestId $($Response.pullRequestId)
-		if($Commits -eq 0){
-			Write-Host "Branch '$Target' is already up-to-date with branch '$Source' in repository '$Repository'."
-			Write-Host "But there's no way to delete or abandon this PR via the rest api so we will just continue."
-		}
 		$PRDetails = New-Object -TypeName psobject
 		$PRDetails | Add-Member -MemberType NoteProperty -Name id -Value "$($Response.pullRequestId)"
 		$PRDetails | Add-Member -MemberType NoteProperty -Name version -Value ""
@@ -119,16 +114,16 @@ function CreatePullRequest
 	}
 	
 	if($($JsonResponse)){
-		if($($JsonResponse.message) -match "An active pull request for the source and target branch already exists") {
-			Write-Host $($JsonResponse.message)
+		if($($JsonResponse.message) -match "An active pull request for the source and target branch already exists") {								#Catch the PR already there error, and return already existing PR details
 			$PRDetails = GetPullRequest -Token $Token -BaseUrl $BaseUrl -Project $Project -Repository $Repository -Source $Source -Target $Target
 			return $PRDetails
 		}
-	} elseif ($($JsonResponse.errors) -And $($JsonResponse.errors.length) -gt 1) {
-		Write-Host $Response
-		throw "Something went wrong"
-		exit 1
 	}
+	
+	#Something went wrong if we end-up here
+	Write-Host $Response
+	throw "Something went wrong"
+	exit 1
 }
 
 function GetPullRequest
@@ -170,8 +165,7 @@ function GetPullRequest
 	}
 }
 
-function GetPullRequestCommits
-{
+function CanMergePullRequest{
 	Param(
 		[parameter(Mandatory=$True)]
 		[String]$Token,
@@ -184,7 +178,6 @@ function GetPullRequestCommits
 		[parameter(Mandatory=$True)]
 		[String]$PullRequestId
 	)
-	
 	$Base64Token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$Token)))	
 	$Bearer = "Basic $Base64Token"
 	
@@ -192,7 +185,15 @@ function GetPullRequestCommits
 		Authorization = $Bearer
 	}
 	
-	$EndPoint = "$BaseUrl/$Project/_apis/git/repositories/$Repository/pullrequests/$PullRequestId/commits?api-version=5.1"
+	$EndPoint = "$BaseUrl/$Project/_apis/git/repositories/$Repository/pullrequests/$($PullRequestId)?api-version=5.1"
 	$Response = Invoke-RestMethod -Uri $EndPoint -Method GET -Headers $Headers
-	return $Response.count
+	if($Response.mergeStatus -eq "succeeded"){
+		return $True
+	} elseif ($Response.mergeStatus -eq "queued") {
+		Write-Host "Queued! Retry in 1 sec"
+		Start-Sleep -Seconds 1
+		CanMergePullRequest -Token $Token -BaseUrl $BaseUrl -Project $Project -Repository $Repository -PullRequestId $PullRequestId
+	} else {
+		return $False
+	}
 }

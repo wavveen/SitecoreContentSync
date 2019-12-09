@@ -99,18 +99,43 @@ function CreatePullRequest
 	}
 	
 	if($($JsonResponse.errors) -And $($JsonResponse.errors.length) -eq 1){
-		if($($JsonResponse.errors[0].message) -match "is already up-to-date with branch"){
+		if($($JsonResponse.errors[0].message) -match "is already up-to-date with branch"){													#Catch the "already up-to-date" error
 			Write-Host $($JsonResponse.errors[0].message)
 			return "already up-to-date"
-		} elseif($($JsonResponse.errors[0].message) -match "Only one pull request may be open for a given source and target branch") {
+		} elseif($($JsonResponse.errors[0].message) -match "Only one pull request may be open for a given source and target branch") {		#Catch the PR already there error, and return already existing PR details
 			Write-Host $($JsonResponse.errors[0].message)
 			return $($JsonResponse.errors[0].existingPullRequest)
 		}
-	} elseif ($($JsonResponse.errors) -And $($JsonResponse.errors.length) -gt 1) {
-		Write-Host $Response
-		throw "Something went wrong"
-		exit 1
-	} else {
-		return $Response 
 	}
+	
+	#Something went wrong if we end-up here
+	Write-Host $Response
+	throw "Something went wrong"
+	exit 1
+}
+
+function CanMergePullRequest{
+	Param(
+		[parameter(Mandatory=$True)]
+		[String]$Token,
+		[parameter(Mandatory=$True)]
+		[String]$BaseUrl,
+		[parameter(Mandatory=$True)]
+		[String]$Project,
+		[parameter(Mandatory=$True)]
+		[String]$Repository,
+		[parameter(Mandatory=$True)]
+		[String]$PullRequestId
+	)
+	
+	$Bearer = "Bearer $Token"
+	
+	$Headers = @{
+		Authorization = $Bearer
+	}
+	
+	$EndPoint = "$BaseUrl/projects/$Project/repos/$Repository/pull-requests/$PullRequestId/merge"
+	
+	$Response = Invoke-RestMethod -Uri $EndPoint -Method GET -Headers $Headers
+	return $Response.canMerge
 }

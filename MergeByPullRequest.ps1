@@ -101,6 +101,7 @@ if($GitPlatform -eq "AzureDevOps") {
 #Create pull request
 Write-Host "Going to create a pull request to merge $SourceBranch into $TargetBranch"
 $Response = CreatePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Source $SourceBranch -Target $TargetBranch
+#Cancel script execution if target is up-to-date already
 if($Response -eq "already up-to-date"){
 	exit 0
 }
@@ -108,3 +109,31 @@ Write-Host "Pull request created"
 Write-Host "PullRequestId: $($Response.id)"
 Write-Host "PullRequestVersion: $($Response.version)"
 Write-Host "PullRequestTitle: $($Response.title)"
+
+#Check if the pull request can be auto merged
+Write-Host "Check if pull request ($($Response.id)) is auto merge-able"
+$CanMergePR = CanMergePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -PullRequestId $($Response.id)
+if(!$CanMergePR){
+	Write-Host "Pull request ($($Response.id)) is NOT auto merge-able, manual action required"
+	Write-Host ""
+	Write-Host "################################################################"
+	Write-Host "#"
+	Write-Host "# Something went wrong while auto merging the PR"
+	Write-Host "#"
+	Write-Host "# 1 Check if the PR is still present in the online interface of the GIT platform"
+	Write-Host "# 2 Delete/Abandon the PR"
+	Write-Host "# 3 On your local, check out the $TargetBranch branch and pull the latest"
+	Write-Host "# 4 On your local, check out the $SourceBranch branch and pull the latest"
+	Write-Host "# 5 Merge $TargetBranch into $SourceBranch"
+	Write-Host "# 6 Resolve the merge conflicts"
+    Write-Host "# 7 Commit and push the merge"
+	Write-Host "#"
+    Write-Host "# After that is all done, the deploy can continue"
+	Write-Host "#"	
+	Write-Host "################################################################"
+	throw "Trigger exception to stop script execution"
+	exit 1
+}
+
+
+
