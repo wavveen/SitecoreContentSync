@@ -235,7 +235,7 @@ function SetReleaseVariable{
 	
 	#Putting the release details
 	Write-Host "Putting the release details"
-	$JsonResponse = Invoke-RestMethod -Uri $EndPoint -Method Put -Headers $Headers -ContentType "application/json" -Body $JsonResponse -Verbose -Debug
+	$JsonResponse = Invoke-RestMethod -Uri $EndPoint -Method Put -Headers $Headers -ContentType "application/json" -Body $JsonResponse
 	Start-Sleep -Seconds 1
 	
 	Write-Host "Release details/variabele have been updated"

@@ -115,9 +115,6 @@ Write-Host "PullRequestTitle: $($Response.title)"
 Write-Host "Check if pull request ($($Response.id)) is auto merge-able"
 $CanMergePR = CanMergePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -PullRequestId $($Response.id)
 if(!$CanMergePR){
-	if($GitPlatform -eq "AzureDevOps") {
-		SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl.replace("https://","https://vsrm.") -Project $GitProjectName -VariableName "IsAutoMergeable" -VariableValue "no"
-	}
 	Write-Host "Pull request ($($Response.id)) is NOT auto merge-able, manual action required"
 	Write-Host ""
 	Write-Host "################################################################"
@@ -135,6 +132,12 @@ if(!$CanMergePR){
     Write-Host "# After that is all done, the deploy can continue"
 	Write-Host "#"	
 	Write-Host "################################################################"
+	#If we are on the Azure DevOps platform we are not going to throw an error as this platform doesn't support a "Guided Failure Mode" like Octopus deploy
+	#Instead of that set the "IsAutoMergeable" release variable to "no" and add a "Manual Intervention" task which acts upon this release variable
+	if($GitPlatform -eq "AzureDevOps") { 
+		SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl.replace("https://","https://vsrm.") -Project $GitProjectName -VariableName "IsAutoMergeable" -VariableValue "no"
+		exit 0
+	}
 	throw "Trigger exception to stop script execution"
 	exit 1
 }
