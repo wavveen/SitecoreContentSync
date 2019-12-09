@@ -230,7 +230,7 @@ function SetReleaseVariable{
 	#Updating variable in release details
 	Write-Host "Updating variable '$VariableName' in release details to '$VariableValue'"
 	$Response.variables.($VariableName).value = $VariableValue;
-	$JsonResponse = ($Response | ConvertTo-Json -Depth 100
+	$JsonResponse = $Response | ConvertTo-Json -Depth 100
 	$JsonResponse = [Text.Encoding]::UTF8.GetBytes($JsonResponse)
 	
 	#Putting the release details
