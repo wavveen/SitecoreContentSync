@@ -208,14 +208,20 @@ function SetReleaseVariable{
 		[string] $VariableValue
 	)
 
-	$h = BasicAuthHeader $env:SYSTEM_ACCESSTOKEN
+	$Base64Token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$Token)))	
+	$Bearer = "Basic $Base64Token"
+	
+	$Headers = @{
+		Authorization = $Bearer
+	}
+	
 	$baseRMUri = $env:SYSTEM_TEAMFOUNDATIONSERVERURI + $env:SYSTEM_TEAMPROJECT
 	$releaseId = $env:RELEASE_RELEASEID
 
 	$getReleaseUri = $baseRMUri + "/_apis/release/releases/" + $releaseId + "?api-version=5.0"
 	Write-Host = $getReleaseUri
 
-	$release = Invoke-RestMethod -Uri $getReleaseUri -Headers $h -Method Get
+	$release = Invoke-RestMethod -Uri $getReleaseUri -Headers $Headers -Method Get
 
 	# Update an existing variable named d1 to its new value d5
 	Write-Host ("Setting variable value...")
@@ -228,18 +234,6 @@ function SetReleaseVariable{
 
 	$updateReleaseUri = $baseRMUri + "/_apis/release/releases/" + $releaseId + "?api-version=5.0"
 	Write-Host ("Updating release...")
-	$content2 = Invoke-RestMethod -Uri $updateReleaseUri -Method Put -Headers $h -ContentType "application/json" -Body $release2 -Verbose -Debug
+	$content2 = Invoke-RestMethod -Uri $updateReleaseUri -Method Put -Headers $Headers -ContentType "application/json" -Body $release2 -Verbose -Debug
 	write-host "=========================================================="
-}
-
-## Construct a basic auth head using PAT
-function BasicAuthHeader()
-{
-	Param([string]$authtoken)
-
-	$ba = (":{0}" -f $authtoken)
-	$ba = [System.Text.Encoding]::UTF8.GetBytes($ba)
-	$ba = [System.Convert]::ToBase64String($ba)
-	$h = @{Authorization=("Basic{0}" -f $ba);ContentType="application/json"}
-	return $h
 }
