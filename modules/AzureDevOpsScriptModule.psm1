@@ -1,3 +1,5 @@
+#https://docs.microsoft.com/en-us/rest/api/azure/devops/git/?view=azure-devops-rest-5.1
+
 function GetBranch
 {
 	Param(
@@ -28,4 +30,169 @@ function GetBranch
 	} else {
 		Return $null
 	}
+}
+
+function AlreadyUpToDate{
+	Param(
+		[parameter(Mandatory=$True)]
+		[String]$Token,
+		[parameter(Mandatory=$True)]
+		[String]$BaseUrl,
+		[parameter(Mandatory=$True)]
+		[String]$Project,
+		[parameter(Mandatory=$True)]
+		[String]$Repository,
+		[parameter(Mandatory=$True)]
+		[String]$Source,
+		[parameter(Mandatory=$True)]
+		[String]$Target
+	)
+	
+	$Base64Token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$Token)))	
+	$Bearer = "Basic $Base64Token"
+	
+	$Headers = @{
+		Authorization = $Bearer
+	}
+	
+	$EndPoint = "$BaseUrl/$Project/_apis/git/repositories/$Repository/diffs/commits?api-version=5.1&baseVersion=$Source&targetVersion=$Target"
+	$Response = Invoke-RestMethod -Uri $EndPoint -Method GET -Headers $Headers
+	if($Response.aheadCount -eq 0 -And $Response.behindCount -eq 0){
+		return $True
+	} else {
+		return $False
+	}
+}
+
+function CreatePullRequest
+{
+	Param(
+		[parameter(Mandatory=$True)]
+		[String]$Token,
+		[parameter(Mandatory=$True)]
+		[String]$BaseUrl,
+		[parameter(Mandatory=$True)]
+		[String]$Project,
+		[parameter(Mandatory=$True)]
+		[String]$Repository,
+		[parameter(Mandatory=$True)]
+		[String]$Source,
+		[parameter(Mandatory=$True)]
+		[String]$Target
+	)
+	
+	$Base64Token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$Token)))	
+	$Bearer = "Basic $Base64Token"
+	
+	$Headers = @{
+		Authorization = $Bearer
+	}
+		
+	$Body = '{
+		"sourceRefName": "' + $Source + '",
+		"targetRefName": "' + $Target + '",
+		"title": "' + $Source + ' to ' + $Target + '",
+		"description": "PR for ' + $Source + ' to ' + $Target + ' as part of content synchronization during Continuous Delivery"
+	}'
+	
+	$EndPoint = "$BaseUrl/$Project/_apis/git/repositories/$Repository/pullrequests?api-version=5.1"
+	
+	try {
+		$Response = Invoke-RestMethod -Uri $EndPoint -Method POST -Headers $Headers -Body $Body -ContentType "application/json"
+		$Commits = GetPullRequestCommits -Token $Token -BaseUrl $BaseUrl -Project $Project -Repository $Repository -PullRequestId $($Response.pullRequestId)
+		if($Commits -eq 0){
+			Write-Host "Branch '$Target' is already up-to-date with branch '$Source' in repository '$Repository'."
+			Write-Host "But there's no way to delete or abandon this PR via the rest api so we will just continue."
+		}
+		$PRDetails = New-Object -TypeName psobject
+		$PRDetails | Add-Member -MemberType NoteProperty -Name id -Value "$($Response.pullRequestId)"
+		$PRDetails | Add-Member -MemberType NoteProperty -Name version -Value ""
+		$PRDetails | Add-Member -MemberType NoteProperty -Name title -Value "$($Response.title)"
+		return $PRDetails
+	} catch {
+        $Exception = $_.Exception.Response.GetResponseStream()
+        $Reader = New-Object System.IO.StreamReader($Exception)
+        $Reader.BaseStream.Position = 0
+        $Reader.DiscardBufferedData()
+		$Response = $Reader.ReadToEnd()
+        $JsonResponse = ($Response | ConvertFrom-Json)
+	}
+	
+	if($($JsonResponse)){
+		if($($JsonResponse.message) -match "An active pull request for the source and target branch already exists") {
+			Write-Host $($JsonResponse.message)
+			$PRDetails = GetPullRequest -Token $Token -BaseUrl $BaseUrl -Project $Project -Repository $Repository -Source $Source -Target $Target
+			return $PRDetails
+		}
+	} elseif ($($JsonResponse.errors) -And $($JsonResponse.errors.length) -gt 1) {
+		Write-Host $Response
+		throw "Something went wrong"
+		exit 1
+	}
+}
+
+function GetPullRequest
+{
+	Param(
+		[parameter(Mandatory=$True)]
+		[String]$Token,
+		[parameter(Mandatory=$True)]
+		[String]$BaseUrl,
+		[parameter(Mandatory=$True)]
+		[String]$Project,
+		[parameter(Mandatory=$True)]
+		[String]$Repository,
+		[parameter(Mandatory=$True)]
+		[String]$Source,
+		[parameter(Mandatory=$True)]
+		[String]$Target
+	)
+	
+	$Base64Token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$Token)))	
+	$Bearer = "Basic $Base64Token"
+	
+	$Headers = @{
+		Authorization = $Bearer
+	}
+	
+	$EndPoint = "$BaseUrl/$Project/_apis/git/repositories/$Repository/pullrequests?api-version=5.1&searchCriteria.sourceRefName=$Source&searchCriteria.targetRefName=$Target&searchCriteria.status=active"
+	$Response = Invoke-RestMethod -Uri $EndPoint -Method GET -Headers $Headers
+	if($Response -And $Response.count -eq 1) {
+		$PRDetails = New-Object -TypeName psobject
+		$PRDetails | Add-Member -MemberType NoteProperty -Name id -Value "$($Response.value[0].pullRequestId)"
+		$PRDetails | Add-Member -MemberType NoteProperty -Name version -Value ""
+		$PRDetails | Add-Member -MemberType NoteProperty -Name title -Value "$($Response.value[0].title)"
+		return $PRDetails
+	} else {
+		Write-Host $Response
+		throw "Something went wrong"
+		exit 1
+	}
+}
+
+function GetPullRequestCommits
+{
+	Param(
+		[parameter(Mandatory=$True)]
+		[String]$Token,
+		[parameter(Mandatory=$True)]
+		[String]$BaseUrl,
+		[parameter(Mandatory=$True)]
+		[String]$Project,
+		[parameter(Mandatory=$True)]
+		[String]$Repository,
+		[parameter(Mandatory=$True)]
+		[String]$PullRequestId
+	)
+	
+	$Base64Token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$Token)))	
+	$Bearer = "Basic $Base64Token"
+	
+	$Headers = @{
+		Authorization = $Bearer
+	}
+	
+	$EndPoint = "$BaseUrl/$Project/_apis/git/repositories/$Repository/pullrequests/$PullRequestId/commits?api-version=5.1"
+	$Response = Invoke-RestMethod -Uri $EndPoint -Method GET -Headers $Headers
+	return $Response.count
 }

@@ -87,26 +87,24 @@ if($TargetBranch){
 	exit 1
 }
 
+#Check if a pull request is necessary. Only need to do this for the Azure DevOps platform as it will create a PR eventhoug branches are up-to-date
+#already, and there is no way to delete or abandon a PR via the rest api after it's created.
+#The BitBucket platform prevents from creating a PR for branches which are up-to-date already.
+if($GitPlatform -eq "AzureDevOps") {
+	$AlreadyUpToDate = AlreadyUpToDate -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Source $SourceBranch.replace("refs/heads/","") -Target $TargetBranch.replace("refs/heads/","")
+	if($AlreadyUpToDate){
+		Write-Host "Branch '$TargetBranch' is already up-to-date with branch '$SourceBranch' in repository '$GitRepositoryName'. No need for a pull request"
+		exit 0
+	}
+}
+
 #Create pull request
 Write-Host "Going to create a pull request to merge $SourceBranch into $TargetBranch"
 $Response = CreatePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Source $SourceBranch -Target $TargetBranch
-if($($Response.errors) -And $($Response.errors.length) -eq 1){
-	if($($Response.errors[0].message) -match "is already up-to-date with branch"){
-		Write-Host $($Response.errors[0].message)
-		exit 0
-	} elseif($($Response.errors[0].message) -match "Only one pull request may be open for a given source and target branch") {
-		Write-Host $($Response.errors[0].message)
-		$PullRequestId = $($Response.errors[0].existingPullRequest.id)
-		$PullRequestVersion = $($Response.errors[0].existingPullRequest.version)
-		$PullRequestTitle = $($Response.errors[0].existingPullRequest.title)
-	}
-} elseif ($($Response.errors) -And $($Response.errors.length) -gt 1) {
-	Write-Host ($Response| ConvertTo-Json)
-	throw "Something went wrong"
-	exit 1
-} else {
-	Write-Host "Pull request created"
-	$PullRequestId = $($Response.id)
-	$PullRequestVersion = $($Response.version)
-	$PullRequestTitle = $Response.title
+if($Response -eq "already up-to-date"){
+	exit 0
 }
+Write-Host "Pull request created"
+Write-Host "PullRequestId: $($Response.id)"
+Write-Host "PullRequestVersion: $($Response.version)"
+Write-Host "PullRequestTitle: $($Response.title)"

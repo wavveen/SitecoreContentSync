@@ -1,3 +1,5 @@
+#https://docs.atlassian.com/bitbucket-server/rest/5.16.0/bitbucket-rest.html
+
 function GetBranch
 {
 	Param(
@@ -54,7 +56,7 @@ function CreatePullRequest
 	
 	$Body = '{
 		"title": "' + $Source + ' to ' + $Target + '",
-		"description": "PR for ' + $Source + ' to ' + $Target + '",
+		"description": "PR for ' + $Source + ' to ' + $Target + ' as part of content synchronization during Continuous Delivery",
 		"state": "OPEN",
 		"open": true,
 		"closed": false,
@@ -88,13 +90,27 @@ function CreatePullRequest
 		return $Response
 	} catch {
 		Write-Host "!Exception: $_.Exception.Message"
-		
-        $Response = $_.Exception.Response.GetResponseStream()
-        $Reader = New-Object System.IO.StreamReader($Response)
+        $Exception = $_.Exception.Response.GetResponseStream()
+        $Reader = New-Object System.IO.StreamReader($Exception)
         $Reader.BaseStream.Position = 0
         $Reader.DiscardBufferedData()
-        $ResponseBody = $Reader.ReadToEnd();
-		
-		return ($ResponseBody | ConvertFrom-Json)
+		$Response = $Reader.ReadToEnd()
+        $JsonResponse = ($Response | ConvertFrom-Json)
+	}
+	
+	if($($JsonResponse.errors) -And $($JsonResponse.errors.length) -eq 1){
+		if($($JsonResponse.errors[0].message) -match "is already up-to-date with branch"){
+			Write-Host $($JsonResponse.errors[0].message)
+			return "already up-to-date"
+		} elseif($($JsonResponse.errors[0].message) -match "Only one pull request may be open for a given source and target branch") {
+			Write-Host $($JsonResponse.errors[0].message)
+			return $($JsonResponse.errors[0].existingPullRequest)
+		}
+	} elseif ($($JsonResponse.errors) -And $($JsonResponse.errors.length) -gt 1) {
+		Write-Host $Response
+		throw "Something went wrong"
+		exit 1
+	} else {
+		return $Response 
 	}
 }
