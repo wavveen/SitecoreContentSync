@@ -73,5 +73,5 @@ if([string]::IsNullOrEmpty($Output.Output)){
 }else{
 	Write-Host "There are changes, going to commit and push"
 	RunKuduCommand -Command "git commit -a -m `"$ReleaseNumber pre deploy commit $ContentBranch`" --allow-empty" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
-	RunKuduCommand -Command "git push -u origin `"$ContentBranch`"" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+	RunKuduCommand -Command "git push" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
 }

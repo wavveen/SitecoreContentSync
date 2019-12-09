@@ -70,7 +70,6 @@ function RunKuduCommand
 		if($Output.ExitCode -gt 0 -or $Exception -or ($Output.Error `
 			-And (!($Output.Error.StartsWith("Already") -And $Command.StartsWith("git checkout")) 						<#Somehow the info about if a checkout is up to date already gets returned as an error, don't handle as error#> `
 			-And !($Output.Error.StartsWith("From") -And $Command.StartsWith("git fetch"))	 							<#Somehow the fetch info gets returned as an error, don't handle as error#> `
-			-And !($Output.Error.StartsWith("Switched to branch") -And $Command.StartsWith("git checkout"))	 			<#Somehow the info about switching branches gets returned as an error, don't handle as error#> `
 			-And !($Output.Error.StartsWith("Everything up-to-date") -And $Command.StartsWith("git push"))	  			<#Somehow the push info gets returned as an error, don't handle as error#> `
 			-And !($Output.Error -Match "remote: Create pull request for" -And $Command.StartsWith("git push"))))){	  	<#Somehow the push info gets returned as an error, don't handle as error#> `
 			if(!([string]::IsNullOrEmpty($exceptionMessage))){
