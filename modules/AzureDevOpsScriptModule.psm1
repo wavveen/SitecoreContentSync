@@ -221,7 +221,7 @@ function SetReleaseVariable{
 		Authorization = $Bearer
 	}
 	
-	$EndPoint = "$BaseUrl/$Project/_apis/_apis/release/releases/$($env:RELEASE_RELEASEID)?api-version=5.1"
+	$EndPoint = "$BaseUrl/$Project/_apis/release/releases/$($env:RELEASE_RELEASEID)?api-version=5.1"
 
 	Write-Host $EndPoint
 	$release = Invoke-RestMethod -Uri $EndPoint -Headers $Headers -Method Get	
