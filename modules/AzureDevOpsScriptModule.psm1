@@ -200,6 +200,10 @@ function CanMergePullRequest{
 
 function SetReleaseVariable{
 	Param (
+		[parameter(Mandatory=$True)]
+		[String]$Token,
+		[parameter(Mandatory=$True)]
+		[String]$BaseUrl,
 		[Parameter(Mandatory=$true)]
 		[ValidateNotNullOrEmpty()]
 		[string] $VariableName,
@@ -215,14 +219,11 @@ function SetReleaseVariable{
 		Authorization = $Bearer
 	}
 	
-	$baseRMUri = $env:SYSTEM_TEAMFOUNDATIONSERVERURI + $env:SYSTEM_TEAMPROJECT
-	$releaseId = $env:RELEASE_RELEASEID
+	$releaseId = $env:RELEASE_RELEASEID	
+	$EndPoint = "$BaseUrl/$Project/_apis/_apis/release/releases/$releaseId?api-version=5.1"
 
-	$getReleaseUri = $baseRMUri + "/_apis/release/releases/" + $releaseId + "?api-version=5.0"
-	Write-Host $getReleaseUri
-
-	$release = Invoke-RestMethod -Uri $getReleaseUri -Headers $Headers -Method Get
-	
+	Write-Host $EndPoint
+	$release = Invoke-RestMethod -Uri $EndPoint -Headers $Headers -Method Get	
 	Write-Host $release
 
 	# Update an existing variable named d1 to its new value d5
@@ -234,8 +235,7 @@ function SetReleaseVariable{
 	$release2 = $release | ConvertTo-Json -Depth 100
 	$release2 = [Text.Encoding]::UTF8.GetBytes($release2)
 
-	$updateReleaseUri = $baseRMUri + "/_apis/release/releases/" + $releaseId + "?api-version=5.0"
 	Write-Host ("Updating release...")
-	$content2 = Invoke-RestMethod -Uri $updateReleaseUri -Method Put -Headers $Headers -ContentType "application/json" -Body $release2 -Verbose -Debug
+	$content2 = Invoke-RestMethod -Uri $EndPoint -Method Put -Headers $Headers -ContentType "application/json" -Body $release2 -Verbose -Debug
 	write-host "=========================================================="
 }
