@@ -110,6 +110,7 @@ Write-Host "Pull request created"
 Write-Host "PullRequestId: $($Response.id)"
 Write-Host "PullRequestVersion: $($Response.version)"
 Write-Host "PullRequestTitle: $($Response.title)"
+Write-Host "PullRequestAuthorId: $($Response.author)"
 
 #Check if the pull request can be auto merged
 Write-Host "Check if pull request ($($Response.id)) is auto merge-able"
@@ -146,7 +147,7 @@ Write-Host "Pull request ($($Response.id)) is auto merge-able!"
 
 #Merge pull request
 Write-Host "Going to merge the pull request to merge $SourceBranch into $TargetBranch"
-$Merged = MergePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -PullRequestId $($Response.id) -PullRequestVersion $($Response.version)
+$Merged = MergePullRequest -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -PullRequestId $($Response.id) -PullRequestVersion $($Response.version) -PullRequestAuthorId $($Response.author)
 if($Merged){
 	Write-Host "The merge has completed succesfully"
 } else {

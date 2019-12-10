@@ -155,8 +155,9 @@ function GetPullRequest
 	if($Response -And $Response.count -eq 1) {
 		$PRDetails = New-Object -TypeName psobject
 		$PRDetails | Add-Member -MemberType NoteProperty -Name id -Value "$($Response.value[0].pullRequestId)"
-		$PRDetails | Add-Member -MemberType NoteProperty -Name version -Value ""
+		$PRDetails | Add-Member -MemberType NoteProperty -Name version -Value "x"
 		$PRDetails | Add-Member -MemberType NoteProperty -Name title -Value "$($Response.value[0].title)"
+		$PRDetails | Add-Member -MemberType NoteProperty -Name author -Value "$($Response.value[0].createdBy.id)"
 		return $PRDetails
 	} else {
 		Write-Host $Response
@@ -233,7 +234,7 @@ function SetReleaseVariable{
 	
 	#Putting the release details
 	Write-Host "Putting the release details"
-	$JsonResponse = Invoke-RestMethod -Uri $EndPoint -Method Put -Headers $Headers -ContentType "application/json" -Body $JsonResponse
+	$JsonResponse = Invoke-RestMethod -Uri $EndPoint -Method PUT -Headers $Headers -ContentType "application/json" -Body $JsonResponse
 	Start-Sleep -Seconds 1
 	
 	Write-Host "Release details/variable have been updated"
@@ -250,7 +251,11 @@ function MergePullRequest{
 		[parameter(Mandatory=$True)]
 		[String]$Repository,
 		[parameter(Mandatory=$True)]
-		[String]$PullRequestId
+		[String]$PullRequestId,
+		[parameter(Mandatory=$True)]
+		[String]$PullRequestVersion,
+		[parameter(Mandatory=$True)]
+		[String]$PullRequestAuthorId
 	)
 		
 	$Base64Token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$Token)))	
@@ -260,5 +265,8 @@ function MergePullRequest{
 		Authorization = $Bearer
 	}
 	
-	$EndPoint = 
+	$Body = '{"autoCompleteSetBy": { "id": "' + $PullRequestAuthorId + '"}}'
+	
+	$EndPoint = "$BaseUrl/$Project/_apis/git/repositories/$Repository/pullrequests/$($PullRequestId)?api-version=5.1"
+	Invoke-RestMethod -Uri $EndPoint -Method PATCH -Headers $Headers -ContentType "application/json" -Body $Body
 }

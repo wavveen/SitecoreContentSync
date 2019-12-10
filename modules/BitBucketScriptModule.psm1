@@ -153,7 +153,9 @@ function MergePullRequest{
 		[parameter(Mandatory=$True)]
 		[String]$PullRequestId,
 		[parameter(Mandatory=$True)]
-		[String]$PullRequestVersion
+		[String]$PullRequestVersion,
+		[parameter(Mandatory=$True)]
+		[String]$PullRequestAuthorId
 	)
 		
 	$Bearer = "Bearer $Token"
@@ -170,6 +172,6 @@ function MergePullRequest{
 		return $True
 	} else {
 		Write-Host $Response
-		return $False		
+		return $False
 	}
 }
