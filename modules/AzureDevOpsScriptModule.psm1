@@ -101,7 +101,7 @@ function CreatePullRequest
 		$Response = Invoke-RestMethod -Uri $EndPoint -Method POST -Headers $Headers -Body $Body -ContentType "application/json"
 		$PRDetails = New-Object -TypeName psobject
 		$PRDetails | Add-Member -MemberType NoteProperty -Name id -Value "$($Response.pullRequestId)"
-		$PRDetails | Add-Member -MemberType NoteProperty -Name version -Value ""
+		$PRDetails | Add-Member -MemberType NoteProperty -Name version -Value "x"
 		$PRDetails | Add-Member -MemberType NoteProperty -Name title -Value "$($Response.title)"
 		$PRDetails | Add-Member -MemberType NoteProperty -Name author -Value "$($Response.createdBy.id)"
 		return $PRDetails
