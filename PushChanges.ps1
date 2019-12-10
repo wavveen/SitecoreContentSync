@@ -27,6 +27,10 @@ Param(
 	[parameter(Mandatory=$True, ParameterSetName = 'KuduDetails')]
 	[String]$KuduHostname,
 	
+	#Defines if this push is part of the deploy process
+	[parameter(Mandatory=$False)]
+	[switch]$IsDeploy = $True,
+	
 	#Emailaddress for commit
 	[parameter(Mandatory=$False)]
 	[String]$Emailaddress = "content@sync.com",
@@ -72,6 +76,11 @@ if([string]::IsNullOrEmpty($Output.Output)){
 	Write-Host "There are no changes, so no need to commit and push"
 }else{
 	Write-Host "There are changes, going to commit and push"
-	RunKuduCommand -Command "git commit -a -m `"$ReleaseNumber pre deploy commit $ContentBranch`" --allow-empty" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+	if($IsDeploy){
+		RunKuduCommand -Command "git commit -a -m `"$ReleaseNumber pre deploy commit $ContentBranch`" --allow-empty" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
+	} else {
+		$DateTime = Get-Date -UFormat "%Y-%m-%d %R"
+		RunKuduCommand -Command "git commit -a -m  `"Content preservation $ContentBranch $DateTime`" --allow-empty" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)		
+	}
 	RunKuduCommand -Command "git push" -Directory $GitDirectory -Username $KuduUsername -Password $KuduPassword -Hostname $KuduHostname -Reference ([ref]$Output)
 }
