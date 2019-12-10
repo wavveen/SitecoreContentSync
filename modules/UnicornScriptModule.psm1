@@ -4,10 +4,10 @@ Function Unicorn {
 		[Parameter(Mandatory=$True)]
 		[string]$ControlPanelUrl,
 
-		#The Unicorn configurations to perform the requested action for
+		#Configuration to perform the action for
 		[Parameter(Mandatory=$True)]
-		[string[]]$Configurations,
-		
+		[string]$Configuration,
+
 		#Action to perform (Sync/Reserialize)
 		[Parameter(Mandatory=$True)]
 		[string]$Verb,
@@ -25,37 +25,34 @@ Function Unicorn {
 	Add-Type -Path $MicroCHAP
 	
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-	#Run action for passed configurations
-	ForEach ($Configuration in $Configurations ) {		
-		$url = "{0}?verb={1}&configuration={2}" -f $ControlPanelUrl, $Verb, $Configuration
 	
-		Write-Host "Unicorn: Preparing authorization for $url"
+	$url = "{0}?verb={1}&configuration={2}" -f $ControlPanelUrl, $Verb, $Configuration
+	
+	Write-Host "Unicorn: Preparing authorization for $url"
 
-		#Get an Auth challenge
-		$challenge = Get-Challenge -ControlPanelUrl $ControlPanelUrl
+	#Get an Auth challenge
+	$challenge = Get-Challenge -ControlPanelUrl $ControlPanelUrl
 
-		Write-Host "Unicorn: Received challenge from remote server: $challenge"
-		$signatureService = New-Object MicroCHAP.SignatureService -ArgumentList $SharedSecret
+	Write-Host "Unicorn: Received challenge from remote server: $challenge"
+	$signatureService = New-Object MicroCHAP.SignatureService -ArgumentList $SharedSecret
 		
-		#Create a signature with the shared secret and challenge
-		$signature = $signatureService.CreateSignature($challenge, $url, $null)
+	#Create a signature with the shared secret and challenge
+	$signature = $signatureService.CreateSignature($challenge, $url, $null)
 
-		if(-not $NoDebug) {
-			Write-Host "Sync-Unicorn: MAC '$($signature.SignatureSource)'"
-			Write-Host "Sync-Unicorn: HMAC '$($signature.SignatureHash)'"
-			Write-Host "Sync-Unicorn: If you get authorization failures compare the values above to the Sitecore logs."
-		}
+	if(-not $NoDebug) {
+		Write-Host "Sync-Unicorn: MAC '$($signature.SignatureSource)'"
+		Write-Host "Sync-Unicorn: HMAC '$($signature.SignatureHash)'"
+		Write-Host "Sync-Unicorn: If you get authorization failures compare the values above to the Sitecore logs."
+	}
 	
-		$result = Invoke-WebRequest -Uri $url -Headers @{ "X-MC-MAC" = $signature.SignatureHash; "X-MC-Nonce" = $challenge } -TimeoutSec 10800 -UseBasicParsing
-		
-		$result.Content
+	$result = Invoke-WebRequest -Uri $url -Headers @{ "X-MC-MAC" = $signature.SignatureHash; "X-MC-Nonce" = $challenge } -TimeoutSec 10800 -UseBasicParsing
 	
-		if($result.Content -match "ERROR OCCURRED")
-		{
-			throw "Something went wrong"
-			exit 1
-		}
+	$result.Content
+	
+	if($result.Content -match "ERROR OCCURRED")
+	{
+		throw "Something went wrong"
+		exit 1
 	}
 }
 

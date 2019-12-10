@@ -7,9 +7,17 @@ Param(
 	[parameter(Mandatory=$True, ParameterSetName = 'ConfigurationsByUrl')]
 	[string]$UrlConfigurations,
 	
+	#URL which returns a JSON array containing the configurations that need to be excluded from being processed
+	[parameter(Mandatory=$False, ParameterSetName = 'ConfigurationsByUrl')]
+	[string]$UrlExcludeConfigurations,
+	
 	#Array containing the configurations that need to be processed
 	[parameter(Mandatory=$True, ParameterSetName = 'ConfigurationsByArray')]
 	[string[]]$Configurations,
+	
+	#Array containing the configurations that need to excluded from being processed
+	[parameter(Mandatory=$False, ParameterSetName = 'ConfigurationsByArray')]
+	[string[]]$ExcludeConfigurations,
 	
 	#Action to be perform (Sync/Reserialize)
 	[Parameter(Mandatory=$True)]
@@ -22,8 +30,13 @@ Param(
 
 if($PSCmdlet.ParameterSetName -eq 'ConfigurationsByUrl')
 {
-	Write-Host "Unicorn: Requesting $UrlConfigurations to get the unicorn configurations that need to be processed"
+	Write-Host "Unicorn: Requesting UrlConfigurations to get the unicorn configurations that need to be processed"
 	$Configurations = Invoke-RestMethod -Uri $UrlConfigurations
+	
+	Write-Host "Unicorn: Requesting UrlExcludeConfigurations to get the unicorn configurations that need to be be excluded from being processed"
+	if(![string]::IsNullOrEmpty($UrlExcludeConfigurations)){
+		$ExcludeConfigurations = Invoke-RestMethod -Uri $UrlConfigurations
+	}
 }
 
 #KuduScriptModule containing functions to perform unicorn actions on a webapp
@@ -31,4 +44,11 @@ Import-Module "$PSScriptRoot\modules\UnicornScriptModule.psm1"
 
 $UrlUnicorn = $SitecoreCMInstanceUrl + "/unicorn.aspx"
 
-Unicorn -ControlPanelUrl $UrlUnicorn -Configurations $Configurations -Verb $Verb -SharedSecret $SharedSecret -NoDebug:$False
+#Run action for passed configurations
+ForEach ($Configuration in $Configurations ) {
+	if($Configuration -in $ExcludedConfigurations){
+		Write-Host "Excluded: $Configuration"
+	}else{
+		Unicorn -ControlPanelUrl $UrlUnicorn -Configuration $Configuration -Verb $Verb -SharedSecret $SharedSecret -NoDebug:$False
+	}
+}
