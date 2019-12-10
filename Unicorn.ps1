@@ -35,19 +35,19 @@ if($PSCmdlet.ParameterSetName -eq 'ConfigurationsByUrl')
 	
 	Write-Host "Unicorn: Requesting UrlExcludeConfigurations to get the unicorn configurations that need to be be excluded from being processed"
 	if(![string]::IsNullOrEmpty($UrlExcludeConfigurations)){
-		$ExcludeConfigurations = Invoke-RestMethod -Uri $UrlConfigurations
+		$ExcludeConfigurations = Invoke-RestMethod -Uri $UrlExcludeConfigurations
 	}
 }
 
 #KuduScriptModule containing functions to perform unicorn actions on a webapp
-Import-Module "$PSScriptRoot\modules\UnicornScriptModule.psm1"
+Import-Module "$PSScriptRoot\modules\UnicornScriptModule.psm1" -Force
 
 $UrlUnicorn = $SitecoreCMInstanceUrl + "/unicorn.aspx"
 
 #Run action for passed configurations
 ForEach ($Configuration in $Configurations ) {
-	if($Configuration -in $ExcludedConfigurations){
-		Write-Host "Excluded: $Configuration"
+	if($Configuration -in $ExcludeConfigurations){
+		Write-Host "Unicorn: $Configuration excluded"
 	}else{
 		Unicorn -ControlPanelUrl $UrlUnicorn -Configuration $Configuration -Verb $Verb -SharedSecret $SharedSecret -NoDebug:$False
 	}
