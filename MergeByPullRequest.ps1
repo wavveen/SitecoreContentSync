@@ -37,7 +37,11 @@ Param(
 	
 	#Defines is this merge is critical for the context it's running in
 	[parameter(Mandatory=$False)]
-	[switch]$MergeIsCritical = $True
+	[switch]$MergeIsCritical = $True,
+	
+	#Name of the variable that will be used to store if this merge failed or not, only used if $MergeIsCritical == $True
+	[parameter(Mandatory=$False)]
+	[string]$CriticalMergeStatusVariable = "CSCriticalMergeFailed"
 )
 
 #Resolving GIT platform
@@ -142,9 +146,9 @@ if(!$CanMergePR){
 	Write-Host "################################################################"
 	if($MergeIsCritical){
 		#If we are on the Azure DevOps platform we are not going to throw an error as this platform doesn't support a "Guided Failure Mode" like Octopus deploy
-		#Instead of that set the "CriticalMergeFailed" release variable to "yes" so a "Manual Intervention" task can be configured to act upon this
+		#Instead of that set the $CriticalMergeStatusVariable release variable to "yes" so a "Manual Intervention" task can be configured to act upon this
 		if($GitPlatform -eq "AzureDevOps") { 
-			SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl.replace("https://","https://vsrm.") -Project $GitProjectName -VariableName "IsAutoMergeable" -VariableValue "yes"
+			SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl.replace("https://","https://vsrm.") -Project $GitProjectName -VariableName $CriticalMergeStatusVariable -VariableValue "yes"
 			exit 0
 		}
 		throw "Trigger exception to stop script execution"
@@ -188,9 +192,9 @@ if($Merged){
 	Write-Host "################################################################"
 	if($MergeIsCritical){
 		#If we are on the Azure DevOps platform we are not going to throw an error as this platform doesn't support a "Guided Failure Mode" like Octopus deploy
-		#Instead of that set the "CriticalMergeFailed" release variable to "yes" so a "Manual Intervention" task can be configured to act upon this
+		#Instead of that set the $$CriticalMergeStatusVariable release variable to "yes" so a "Manual Intervention" task can be configured to act upon this
 		if($GitPlatform -eq "AzureDevOps") { 
-			SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl.replace("https://","https://vsrm.") -Project $GitProjectName -VariableName "CriticalMergeFailed" -VariableValue "yes"
+			SetReleaseVariable -Token $RestApiToken -BaseUrl $RestApiBaseUrl.replace("https://","https://vsrm.") -Project $GitProjectName -VariableName $CriticalMergeStatusVariable -VariableValue "yes"
 			exit 0
 		}
 		throw "Trigger exception to stop script execution"
