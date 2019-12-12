@@ -57,13 +57,21 @@ if($GitPlatform -eq "BitBucket"){
 
 #Resolving source branch
 $SourceBranch = GetBranch -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Branch $GitSourceBranch
-if($SourceBranch){
+if($SourceBranch -And !($SourceBranch -eq "multiple branches found")){
 	Write-Host "Source branch: $SourceBranch"
+} elseif ($SourceBranch -And $SourceBranch -eq "multiple branches found"){
+	Write-Host "Multiple branches found for '$SourceBranch', have to abort..."
+	throw "Something went wrong"
+	exit 1
 } elseif ($GitSourceFallbackBranch) {
 	Write-Host "No branch found for '$GitSourceBranch'"
 	$SourceBranch = GetBranch -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Branch $GitSourceFallbackBranch
-	if($SourceBranch){
+	if($SourceBranch -And !($SourceBranch -eq "multiple branches found")){
 		Write-Host "Source branch: $SourceBranch"
+	elseif ($SourceBranch -And $SourceBranch -eq "multiple branches found"){
+		Write-Host "Multiple branches found for '$GitSourceFallbackBranch', have to abort..."
+		throw "Something went wrong"
+		exit 1
 	} else {
 		Write-Host "No branch found for '$GitSourceFallbackBranch'"
 		throw "Something went wrong"
@@ -77,13 +85,21 @@ if($SourceBranch){
 
 #Resolving target branch
 $TargetBranch = GetBranch -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Branch $GitTargetBranch
-if($TargetBranch){
+if($TargetBranch -And !($TargetBranch -eq "multiple branches found")){
 	Write-Host "Target branch: $TargetBranch"
+} elseif ($TargetBranch -And $TargetBranch -eq "multiple branches found"){
+	Write-Host "Multiple branches found for '$TargetBranch', have to abort..."
+	throw "Something went wrong"
+	exit 1
 } elseif ($GitTargetFallbackBranch) {
 	Write-Host "No branch found for '$GitTargetBranch'"
 	$TargetBranch = GetBranch -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Branch $GitTargetFallbackBranch
-	if($TargetBranch){
+	if($TargetBranch -And !($TargetBranch -eq "multiple branches found")){
 		Write-Host "Target branch: $TargetBranch"
+	elseif ($TargetBranch -And $TargetBranch -eq "multiple branches found"){
+		Write-Host "Multiple branches found for '$GitTargetFallbackBranch', have to abort..."
+		throw "Something went wrong"
+		exit 1
 	} else {
 		Write-Host "No branch found for '$GitTargetFallbackBranch'"
 		throw "Something went wrong"

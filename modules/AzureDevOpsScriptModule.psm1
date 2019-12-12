@@ -25,8 +25,10 @@ function GetBranch
 	$EndPoint = "$BaseUrl/$Project/_apis/git/repositories/$Repository/refs?filterContains=$Branch"	
 	$Response = Invoke-RestMethod -Uri $EndPoint -Method GET -Headers $Headers
 	
-	if($Response.count -gt 0) {
+	if($Response.count -eq 1) {
 		Return $($Response.value[0].name)
+	} elseif ($Response.count -gt 1) {
+		Return "multiple branches found"
 	} else {
 		Return $null
 	}
