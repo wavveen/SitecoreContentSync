@@ -39,7 +39,7 @@ Param(
 	[parameter(Mandatory=$False)]
 	[switch]$MergeIsCritical = $True,
 	
-	#Name of the variable that will be used to store if this merge failed or not, only used if $MergeIsCritical == $True
+	#Name of the variable that will be used to store if this merge failed or not, only used if $MergeIsCritical == $True && $GitPlatform == "AzureDevOps"
 	[parameter(Mandatory=$False)]
 	[string]$CriticalMergeStatusVariable = "CSCriticalMergeFailed"
 )
