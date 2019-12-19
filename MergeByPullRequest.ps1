@@ -70,7 +70,7 @@ if($SourceBranch -And !($SourceBranch -eq "multiple branches found")){
 	$SourceBranch = GetBranch -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Branch $GitSourceFallbackBranch
 	if($SourceBranch -And !($SourceBranch -eq "multiple branches found")){
 		Write-Host "Source branch: $SourceBranch"
-	elseif ($SourceBranch -And $SourceBranch -eq "multiple branches found"){
+	} elseif ($SourceBranch -And $SourceBranch -eq "multiple branches found"){
 		Write-Host "Multiple branches found for '$GitSourceFallbackBranch', have to abort..."
 		throw "Something went wrong"
 		exit 1
@@ -98,7 +98,7 @@ if($TargetBranch -And !($TargetBranch -eq "multiple branches found")){
 	$TargetBranch = GetBranch -Token $RestApiToken -BaseUrl $RestApiBaseUrl -Project $GitProjectName -Repository $GitRepositoryName -Branch $GitTargetFallbackBranch
 	if($TargetBranch -And !($TargetBranch -eq "multiple branches found")){
 		Write-Host "Target branch: $TargetBranch"
-	elseif ($TargetBranch -And $TargetBranch -eq "multiple branches found"){
+	} elseif ($TargetBranch -And $TargetBranch -eq "multiple branches found"){
 		Write-Host "Multiple branches found for '$GitTargetFallbackBranch', have to abort..."
 		throw "Something went wrong"
 		exit 1
