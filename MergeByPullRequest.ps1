@@ -37,12 +37,14 @@ Param(
 	
 	#Defines is this merge is critical for the context it's running in
 	[parameter(Mandatory=$False)]
-	[switch]$MergeIsCritical = $True,
+	[switch][bool]$MergeIsCritical,
 	
 	#Name of the variable that will be used to store if this merge failed or not, only used if $MergeIsCritical == $True && $GitPlatform == "AzureDevOps"
 	[parameter(Mandatory=$False)]
 	[string]$CriticalMergeStatusVariable = "CSCriticalMergeFailed"
 )
+
+$MergeIsCritical = $MergeIsCritical.IsPresent
 
 #Resolving GIT platform
 if($GitPlatform -eq "BitBucket"){

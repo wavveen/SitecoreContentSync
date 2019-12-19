@@ -29,7 +29,7 @@ Param(
 	
 	#Defines if this push is part of the deploy process
 	[parameter(Mandatory=$False)]
-	[switch]$IsDeploy = $True,
+	[switch][bool]$IsDeploy,
 	
 	#Emailaddress for commit
 	[parameter(Mandatory=$False)]
@@ -39,6 +39,8 @@ Param(
 	[parameter(Mandatory=$False)]
 	[String]$Username = "contentsync"
 )
+
+$IsDeploy = $IsDeploy.IsPresent
 
 if($PSCmdlet.ParameterSetName -eq 'AzureWebAppDetails')
 {
